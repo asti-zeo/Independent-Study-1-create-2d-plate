@@ -1,0 +1,4 @@
+name: fenicsx-env
+channels:
+  - defaults
+prefix: /Users/arunthavabalansiththarththan/anaconda3/envs/fenicsx-env
