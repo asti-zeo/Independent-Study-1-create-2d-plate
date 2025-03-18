@@ -40,9 +40,6 @@ class PointLoad(UserExpression):
         """Ensure the function is vector-valued."""
         return (2,)  # 2D vector (x, y)
 
-        
-    
-
 
 # Plate dimensions
 L = 1.0  # length in x-direction
