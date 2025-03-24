@@ -2,6 +2,7 @@ from dolfin import *
 import matplotlib.pyplot as plt
 from dolfin import Point
 import numpy as np
+import pandas as pd
 
 
 
@@ -54,11 +55,25 @@ ny = 5
 
 # Create rectangular mesh
 mesh = RectangleMesh(Point(0.0, 0.0), Point(L, H), nx, ny)
+mesh.init(1)
 
+# Create a MeshFunction to mark the edges
+edge_markers = MeshFunction("size_t", mesh, mesh.topology().dim() - 1)
+edge_markers.set_all(0)
 
+# Iterate over the edges and mark them
+for edge in edges(mesh):
+    edge_markers[edge] = 1
 
+# Extract edge data
+edge_data = []
+for edge in SubsetIterator(edge_markers, 1):
+    edge_data.append((edge.entities(0)[0], edge.entities(0)[1]))
 
-
+# Convert to DataFrame and save
+df_edges = pd.DataFrame(edge_data, columns=['source', 'target'])
+df_edges.to_csv('edges.csv', index=False)
+print("Edge data saved to 'edges.csv'")
 
 
 # define the function space
@@ -148,8 +163,23 @@ num_nodes = len(node_coords)
 
 u_x = displacements[:num_nodes]
 u_y = displacements[num_nodes:]
+# Create array of load indicators (1 where load applied, 0 otherwise)
+load_indicators = np.zeros(len(node_coords))
+for point in f_points:
+    # Find nodes where load is applied (within small tolerance due to floating point)
+    matches = np.all(np.abs(node_coords - point) < 1e-10, axis=1)
+    load_indicators[matches] = 1
 
-displacement_data = np.column_stack((node_coords, u_x, u_y))
-np.savetxt("nodal_displacements.csv", displacement_data, delimiter=",", header="X,Y,UX,UY", comments="")
+# Determine boundary nodes
+boundary_nodes = np.zeros(num_nodes, dtype=int)
+for i, coord in enumerate(node_coords):
+    if boundary_left(coord, True):
+        boundary_nodes[i] = 1
+
+# Stack coordinates, displacements, load indicators, and boundary information
+displacement_data = np.column_stack((node_coords, u_x, u_y, load_indicators, boundary_nodes))
+
+# Save the data with an additional column for boundary information
+np.savetxt("nodal_displacements.csv", displacement_data, delimiter=",", header="X,Y,UX,UY,LOAD,BOUNDARY", comments="")
 
 
