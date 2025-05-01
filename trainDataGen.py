@@ -235,14 +235,15 @@ for shape in shapes:
                             node_coords,    # X, Y coordinates
                             u_x, u_y,       # UX, UY displacements
                             boundary_indicators,  # 1 if boundary condition applied, 0 otherwise
-                            force_indicators      # 1 if force applied, 0 otherwise
+                            force_indicators,     # 1 if force applied, 0 otherwise
+                            np.full(num_nodes, modulus)  # Modulus value for each node
                         ))
                         
                         # Save the data with additional columns
                         displacement_file = os.path.join(output_dir, f"nodal_displacements_{run_id}.csv")
                         np.savetxt(displacement_file, displacement_data, 
                                    delimiter=",", 
-                                   header="X,Y,UX,UY,BOUNDARY,FORCE", 
+                                   header="X,Y,UX,UY,BOUNDARY,FORCE,MODULUS", 
                                    comments="")
                         print(f"Nodal displacements saved to '{displacement_file}'")
 
